@@ -15,12 +15,12 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
- /**
- * 页面跳转槽函数
- **/
+
+// 页面跳转槽函数
 void MainWindow::on_pushButton_clicked()
 {
     FaceRec *f = new FaceRec();
+    f->setWindowTitle(tr("人脸识别系统"));
     this->close();
     f->show();
 }

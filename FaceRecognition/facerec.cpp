@@ -1,24 +1,50 @@
 #include "facerec.h"
 #include "ui_facerec.h"
 
-#include <opencv2/core/core.hpp>
-#include <opencv2/highgui/highgui.hpp>
-
 FaceRec::FaceRec(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::FaceRec)
 {
     ui->setupUi(this);
-    // read an image,Mat是基础图像容器
-    cv::Mat image = cv::imread("D:/test.jpg", 1);
-    // create image window named "My Image"
-    cv::namedWindow("My Image");
-    // show the image on window
-    cv::imshow("My Image", image);
+    // 实时采集摄像头图像，设置计时器
+    QTimer *timer = new QTimer;
+    connect(timer, SIGNAL(timeout()), this, SLOT(open_camera()));
 
 }
 
 FaceRec::~FaceRec()
 {
     delete ui;
+}
+/*
+    采集摄像头函数
+*/
+void FaceRec::open_camera()
+{
+
+}
+//获取本地图像
+void FaceRec::on_pushButton_clicked()
+{
+    filename = QFileDialog::getOpenFileName(this,
+                                            tr("选择本地图像"),
+                                            "",
+                                            tr("Images (*.png *.bmp *.jpg *.tif *.GIF )"));
+    if(filename.isEmpty())
+    {
+        return;
+    }
+    else
+    {
+        QImage *img = new QImage();
+        if(! (img->load(filename))) //加载图像
+        {
+            QMessageBox::information(this,
+                                     tr("图像打开失败"),
+                                     tr("图像打开失败"));
+            delete img;
+            return;
+        }
+        ui->label->setPixmap(QPixmap::fromImage(*img));
+    }
 }
