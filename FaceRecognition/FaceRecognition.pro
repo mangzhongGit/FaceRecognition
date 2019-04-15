@@ -27,7 +27,8 @@ CONFIG += c++11
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
-    facerec.cpp
+    facerec.cpp \
+    tools.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -52,5 +53,6 @@ LIBS += D:\opencv-3.4.5\opencv-3.4.5-build\install\x86\mingw\bin\libopencv_core3
     D:\opencv-3.4.5\opencv-3.4.5-build\install\x86\mingw\bin\libopencv_features2d345.dll \
     D:\opencv-3.4.5\opencv-3.4.5-build\install\x86\mingw\bin\libopencv_calib3d345.dll \
     D:\opencv-3.4.5\opencv-3.4.5-build\install\x86\mingw\bin\libopencv_shape345.dll \
-    D:\opencv-3.4.5\opencv-3.4.5-build\install\x86\mingw\bin\libopencv_videoio345.dll
+    D:\opencv-3.4.5\opencv-3.4.5-build\install\x86\mingw\bin\libopencv_videoio345.dll \
+    D:\opencv-3.4.5\opencv-3.4.5-build\install\x86\mingw\bin\libopencv_objdetect345.dll
 

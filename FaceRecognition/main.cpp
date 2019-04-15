@@ -5,9 +5,9 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
     MainWindow w;
-    QFont f("ZYSong18030",12);
+    QFont font("ZYSong18030",12);
 
-    w.setFont(f);
+    w.setFont(font);
     w.setWindowTitle("");
     w.show();
 

@@ -12,6 +12,7 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/opencv.hpp>
+#include <opencv2/objdetect.hpp>
 
 #include <iostream>
 using namespace cv;
@@ -39,16 +40,27 @@ private slots:
 
     void on_closeCameraButton_clicked();    //关闭摄像头
 
+    QImage recognize_face(QImage image);     //识别人脸
+
+    Mat fill_light(Mat inputMat);               //补光操作
+
+    void on_fillLightButton_clicked();
+
 private:
     Ui::FaceRec *ui;
 
     QImage Mat2QImage(const cv::Mat& InputMat);   //cv::Mat类型转换为QImage类型
+    cv::Mat QImage2cvMat(const QImage &Image);    //QImage类型转换为cv:Mat类型
+
     QTimer *timer;
     VideoCapture cap; //视频获取结构， 用来作为视频获取函数的一个参数
     Mat frame;        //Mat类型，每一帧存放地址
 
     QImage *img;
     QString filename;
+    std::string xmlpath;
+
+    int arrayColor[256]; // 提亮映射表
 
 };
 
