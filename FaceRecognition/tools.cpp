@@ -3,10 +3,36 @@
 */
 #include <facerec.h>
 
+//识别人脸
+QImage FaceRec::recognize_face(QImage image)
+{
+    Mat InputMat = QImage2cvMat(image);
+    CascadeClassifier ccf;   //创建分类器对象
+    if(!ccf.load(xmlpath))
+    {
+        QMessageBox::warning(this,
+                             "不能加载指定的xml文件",
+                             "不能加载指定的xml文件");
+        //return ;
+    }
+    std::vector<Rect> faces;  //创建一个容器保存检测出来的脸
+    Mat gray;
+    cv::cvtColor(InputMat,gray,CV_BGR2GRAY); //转换成灰度图，因为harr特征从灰度图中提取
+    equalizeHist(gray,gray);  //直方图均衡行
+    ccf.detectMultiScale(gray, faces, 1.1, 3, 0); //检测人脸
+    //画出脸部矩形框
+    for(std::vector<Rect>::const_iterator iter=faces.begin();iter!=faces.end();iter++)
+    {
+        cv::rectangle(InputMat,*iter,Scalar(0,0,255),2,8); //画出脸部矩形
+    }
+    QImage result = Mat2QImage(InputMat);
+    return result;
+}
+
 // cv::Mat类型转换为QImage类型
 QImage FaceRec::Mat2QImage(const cv::Mat& InputMat)
 {
-    cv::Mat TmpMat;
+    cv::Mat TmpMat, gray;
     //将颜色空间转换为RGB
     if (InputMat.channels() == 1)
     {
@@ -52,14 +78,14 @@ cv::Mat FaceRec::QImage2cvMat(const QImage& image)
 }
 
 // 补光操作
-cv::Mat FaceRec::fill_light(Mat inputMat)
+cv::Mat FaceRec::fill_light(Mat InputMat)
 {
-    Mat result = inputMat;
+    Mat result = InputMat;
     double blue = 0, green = 0, red = 0;
-    int count = inputMat.rows * inputMat.cols;
+    int count = InputMat.rows * InputMat.cols;
     // 使用迭代器获取Mat图像的RGB值
     MatIterator_<Vec3b> colorit, colorend;
-    for(colorit = inputMat.begin<Vec3b>(),colorend = inputMat.end<Vec3b>(); colorit != colorend; ++colorit)
+    for(colorit = InputMat.begin<Vec3b>(),colorend = InputMat.end<Vec3b>(); colorit != colorend; ++colorit)
     {
         blue += (*colorit)[0];
         green += (*colorit)[1];
@@ -81,8 +107,8 @@ cv::Mat FaceRec::fill_light(Mat inputMat)
     int Alpha = std::min(1, std::max(0, (versionGray - gray)/(colorMap1 - gray)));
 
     MatIterator_<Vec3b> colorit2, colorend2, colorit3, colorend3;
-    colorit2 = inputMat.begin<Vec3b>();
-    colorend2 = inputMat.end<Vec3b>();
+    colorit2 = InputMat.begin<Vec3b>();
+    colorend2 = InputMat.end<Vec3b>();
     colorit3 = result.begin<Vec3b>();
     colorend3 = result.end<Vec3b>();
     for( ;colorit2 != colorend2; ++colorit2, ++colorit3)
@@ -97,4 +123,36 @@ cv::Mat FaceRec::fill_light(Mat inputMat)
     }
 
     return result;
+}
+
+// 自动调整光照 Local Color Correction Using Non-Linear Masking 算法实现
+Mat FaceRec::auto_adjust_light(Mat InputMat)
+{
+    Mat TmpMat,gray,op_gray,BlurMat;
+    // 将颜色空间转换为RGB
+    if (InputMat.channels() == 1)
+    {
+        cv::cvtColor(InputMat, TmpMat, CV_GRAY2RGB);
+    }
+    else
+    {
+        cv::cvtColor(InputMat, TmpMat, CV_BGR2RGB);
+    }
+
+    // 将RGB图像转化为灰度图像
+    cv::cvtColor(TmpMat,gray,CV_BGR2GRAY);
+
+    // 将灰度图像取反
+    op_gray = 255 - gray;
+
+    // 用大半径滤波器将取反的灰度图像模糊
+    GaussianBlur(op_gray, BlurMat, Size(15,15), 0);
+
+    imshow("InputMat", InputMat);
+    imshow("TmpMat", TmpMat);
+    imshow("gray", gray);
+    imshow("op_gray", op_gray);
+    imshow("BlurMat", BlurMat);
+
+    return BlurMat;
 }

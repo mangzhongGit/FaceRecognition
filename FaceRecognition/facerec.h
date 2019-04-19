@@ -42,7 +42,9 @@ private slots:
 
     QImage recognize_face(QImage image);     //识别人脸
 
-    Mat fill_light(Mat inputMat);               //补光操作
+    Mat fill_light(Mat InputMat);            //补光操作
+
+    Mat auto_adjust_light(Mat InputMat);     //自动调整光照
 
     void on_fillLightButton_clicked();
 

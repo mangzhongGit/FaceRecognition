@@ -51,6 +51,7 @@ void FaceRec::on_localImgButton_clicked()
                                      tr("图像打开失败"));
             return;
         }
+        // *img = recognize_face(*img);
         ui->label->setPixmap(QPixmap::fromImage(*img));
     }
 }
@@ -95,37 +96,12 @@ void FaceRec::on_closeCameraButton_clicked()
     cap.release();
 }
 
-//识别人脸
-QImage FaceRec::recognize_face(QImage image)
-{
-    Mat InputMat = QImage2cvMat(image);
-    CascadeClassifier ccf;   //创建分类器对象
-    if(!ccf.load(xmlpath))
-    {
-        QMessageBox::warning(this,
-                             "不能加载指定的xml文件",
-                             "不能加载指定的xml文件");
-        //return ;
-    }
-    std::vector<Rect> faces;  //创建一个容器保存检测出来的脸
-    Mat gray;
-    cv::cvtColor(InputMat,gray,CV_BGR2GRAY); //转换成灰度图，因为harr特征从灰度图中提取
-    equalizeHist(gray,gray);  //直方图均衡行
-    ccf.detectMultiScale(gray, faces, 1.1, 3, 0, Size(10,10),Size(100,100)); //检测人脸
-    //画出脸部矩形框
-    for(std::vector<Rect>::const_iterator iter=faces.begin();iter!=faces.end();iter++)
-    {
-        cv::rectangle(InputMat,*iter,Scalar(0,0,255),2,8); //画出脸部矩形
-    }
-    QImage result = Mat2QImage(InputMat);
-    return result;
-}
-
-
+// 补光按钮操作
 void FaceRec::on_fillLightButton_clicked()
 {
     Mat middle = QImage2cvMat(*img);
     QImage test = Mat2QImage(fill_light(middle));
     ui->label_2->setPixmap(QPixmap::fromImage(test));
+    auto_adjust_light(middle);
 
 }
