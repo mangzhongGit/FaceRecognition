@@ -128,7 +128,7 @@ cv::Mat FaceRec::fill_light(Mat InputMat)
 // 自动调整光照 Local Color Correction Using Non-Linear Masking 算法实现
 Mat FaceRec::auto_adjust_light(Mat InputMat)
 {
-    Mat TmpMat,gray,op_gray,BlurMat;
+    Mat TmpMat, gray, op_gray, BlurMat, sketch, result;
     // 将颜色空间转换为RGB
     if (InputMat.channels() == 1)
     {
@@ -148,11 +148,16 @@ Mat FaceRec::auto_adjust_light(Mat InputMat)
     // 用大半径滤波器将取反的灰度图像模糊
     GaussianBlur(op_gray, BlurMat, Size(15,15), 0);
 
+    // 利用缩略图来获取图像的mask值
+    cv::resize(BlurMat,sketch,Size(BlurMat.cols/2,BlurMat.rows/2),0,0,INTER_LINEAR);
+
     imshow("InputMat", InputMat);
     imshow("TmpMat", TmpMat);
     imshow("gray", gray);
     imshow("op_gray", op_gray);
     imshow("BlurMat", BlurMat);
+    imshow("sketch", sketch);
 
+    result = 255 * (InputMat / 255);
     return BlurMat;
 }

@@ -16,6 +16,13 @@ FaceRec::FaceRec(QWidget *parent) :
         else arrayColor[i] = i+2;
         if(arrayColor[i]>255) arrayColor[i]=255;
     }
+
+    ui->label->setFixedSize(600, 800);
+    ui->label->setText("用于显示原图");
+    ui->label->setAlignment(Qt::AlignCenter);
+    ui->label_2->setFixedSize(600, 800);
+    ui->label_2->setText("用于显示处理后的效果图");
+    ui->label_2->setAlignment(Qt::AlignCenter);
     // XML文件即是我们人脸检测所需要的分类器文件
     xmlpath = "D:\\opencv-3.4.5\\opencv-3.4.5-build"
               "\\install\\etc\\haarcascades\\haarcascade_frontalface_default.xml";
@@ -52,7 +59,11 @@ void FaceRec::on_localImgButton_clicked()
             return;
         }
         // *img = recognize_face(*img);
-        ui->label->setPixmap(QPixmap::fromImage(*img));
+        //让图片自适应label的大小
+        QPixmap *pixmap = new QPixmap(QPixmap::fromImage(*img));
+        pixmap->scaled(ui->label->size(), Qt::KeepAspectRatio);
+        ui->label->setScaledContents(true);
+        ui->label->setPixmap(*pixmap);
     }
 }
 
@@ -100,8 +111,7 @@ void FaceRec::on_closeCameraButton_clicked()
 void FaceRec::on_fillLightButton_clicked()
 {
     Mat middle = QImage2cvMat(*img);
-    QImage test = Mat2QImage(fill_light(middle));
-    ui->label_2->setPixmap(QPixmap::fromImage(test));
+//    QImage test = Mat2QImage(fill_light(middle));
+//    ui->label_2->setPixmap(QPixmap::fromImage(test));
     auto_adjust_light(middle);
-
 }
