@@ -28,11 +28,13 @@ SOURCES += \
         main.cpp \
         mainwindow.cpp \
     facerec.cpp \
-    tools.cpp
+    tools.cpp \
+    imgthread.cpp
 
 HEADERS += \
         mainwindow.h \
-    facerec.h
+    facerec.h \
+    imgthread.h
 
 FORMS += \
         mainwindow.ui \

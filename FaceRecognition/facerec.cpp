@@ -11,7 +11,7 @@ FaceRec::FaceRec(QWidget *parent) :
     img = new QImage();
     for(int i=0; i<256; i++)
     {
-        if((i % 3) == 0) arrayColor[i] = i;
+        if((i % 3) == 0) arrayColor[i] = i+3;
         else if((i % 3) == 1) arrayColor[i] = i+1;
         else arrayColor[i] = i+2;
         if(arrayColor[i]>255) arrayColor[i]=255;
@@ -111,7 +111,31 @@ void FaceRec::on_closeCameraButton_clicked()
 void FaceRec::on_fillLightButton_clicked()
 {
     Mat middle = QImage2cvMat(*img);
+    balance_white(middle);
 //    QImage test = Mat2QImage(fill_light(middle));
 //    ui->label_2->setPixmap(QPixmap::fromImage(test));
-    auto_adjust_light(middle);
+//    imshow("yuantu", middle);
+//    auto_adjust_light(middle);
+//    while(1)
+//    {
+//        if(judge_light_intensity(middle) == 0)
+//        {
+//            QMessageBox::information(this,"result","图片颜色正常");
+//            break;
+//        }
+//        else if(judge_light_intensity(middle) == 1)
+//        {
+//            QMessageBox::information(this,"result","图片颜色偏亮");
+//            break;
+//        }
+//        else
+//        {
+//            QMessageBox::information(this,"result","图片颜色偏暗");
+//            middle = fill_light(middle);
+//            QImage test = Mat2QImage(middle);
+//            ui->label_2->setPixmap(QPixmap::fromImage(test));
+//        }
+//    }
+//    QImage test = Mat2QImage(middle);
+//    ui->label_2->setPixmap(QPixmap::fromImage(test));
 }

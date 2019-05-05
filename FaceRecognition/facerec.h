@@ -7,6 +7,10 @@
 #include <QString>
 #include <QFileDialog>
 #include <QImage>
+#include <QDebug>
+
+#include <cmath>
+#include <vector>
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
@@ -45,6 +49,10 @@ private slots:
     Mat fill_light(Mat InputMat);            //补光操作
 
     Mat auto_adjust_light(Mat InputMat);     //自动调整光照
+
+    int judge_light_intensity(Mat InputMat); //判断光照强度
+
+    Mat balance_white(Mat InputMat);          // 灰色世界法白平衡
 
     void on_fillLightButton_clicked();
 
