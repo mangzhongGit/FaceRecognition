@@ -1,26 +1,8 @@
 #ifndef FACEREC_H
 #define FACEREC_H
-
-#include <QWidget>
-#include <QTimer>
-#include <QMessageBox>
-#include <QString>
-#include <QFileDialog>
-#include <QImage>
-#include <QDebug>
-
-#include <cmath>
-#include <vector>
-
-#include <opencv2/core/core.hpp>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/opencv.hpp>
-#include <opencv2/objdetect.hpp>
-
-#include <iostream>
-using namespace cv;
-
+#include <headers.h>
+#include <takephoto.h>
+#include <tools.h>
 namespace Ui {
 class FaceRec;
 }
@@ -44,9 +26,39 @@ private slots:
 
     void on_closeCameraButton_clicked();    //关闭摄像头
 
-    QImage recognize_face(QImage image);     //识别人脸
+    void reshow();
+
+    void on_fillLightButton_clicked();
+
+    void on_takeOwnPhotoButton_clicked();
+
+    void on_demoButton_clicked();
+
+    void on_testButton_clicked();
+
+    void on_pushButton_clicked();
+
+    void on_pushButton_2_clicked();
+
+private:
+    Ui::FaceRec *ui;
+    QTimer *timer;
+    VideoCapture cap; //视频获取结构， 用来作为视频获取函数的一个参数
+    Mat frame;        //Mat类型，每一帧存放地址
+    QString filename;
+    QImage *img;
+    Mat imgMat;
+
+    Mat demoMat;
+    Mat testMat;
+
+    Ptr<EigenFaceRecognizer> model;
+
+    int arrayColor[256];    // 补光提亮映射表
 
     Mat fill_light(Mat InputMat);            //补光操作
+
+    Mat auto_fill_light(Mat InputMat);       //自动补光操作
 
     Mat auto_adjust_light(Mat InputMat);     //自动调整光照
 
@@ -54,23 +66,11 @@ private slots:
 
     Mat balance_white(Mat InputMat);          // 灰色世界法白平衡
 
-    void on_fillLightButton_clicked();
+    void model_detect(Mat imgMat);            // 模型检测
 
-private:
-    Ui::FaceRec *ui;
+    void get_chart();
 
-    QImage Mat2QImage(const cv::Mat& InputMat);   //cv::Mat类型转换为QImage类型
-    cv::Mat QImage2cvMat(const QImage &Image);    //QImage类型转换为cv:Mat类型
-
-    QTimer *timer;
-    VideoCapture cap; //视频获取结构， 用来作为视频获取函数的一个参数
-    Mat frame;        //Mat类型，每一帧存放地址
-
-    QImage *img;
-    QString filename;
-    std::string xmlpath;
-
-    int arrayColor[256]; // 提亮映射表
+    float get_brightness(Mat InputMat);
 
 };
 

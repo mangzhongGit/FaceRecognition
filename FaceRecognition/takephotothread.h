@@ -1,12 +1,11 @@
 #ifndef IMGTHREAD_H
 #define IMGTHREAD_H
-
-#include <QThread>
-class imgThread : public QThread
+#include <headers.h>
+class takePhotoThread : public QThread
 {
     Q_OBJECT
 public:
-    explicit imgThread(QObject * parent = 0);
+    explicit takePhotoThread(QObject * parent = 0 );
     void stop();
 
 protected:

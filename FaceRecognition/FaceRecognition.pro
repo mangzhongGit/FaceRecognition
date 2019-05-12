@@ -5,6 +5,7 @@
 #-------------------------------------------------
 
 QT       += core gui
+QT += charts
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -28,17 +29,25 @@ SOURCES += \
         main.cpp \
         mainwindow.cpp \
     facerec.cpp \
-    tools.cpp \
-    imgthread.cpp
+    modeltraining.cpp \
+    similaritycompare.cpp \
+    takephotothread.cpp \
+    takephoto.cpp \
+    light.cpp \
+    tools.cpp
 
 HEADERS += \
         mainwindow.h \
     facerec.h \
-    imgthread.h
+    tools.h \
+    headers.h \
+    takephotothread.h \
+    takephoto.h
 
 FORMS += \
         mainwindow.ui \
-    facerec.ui
+    facerec.ui \
+    takephoto.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -46,15 +55,16 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 # 加入OpenCV的头文件路径和库路径
-INCLUDEPATH += D:\opencv-3.4.5\opencv-3.4.5-build\install\include
+INCLUDEPATH += D:\opencv-3.4.5\opencv_contrib-3.4.5-build\install\include
 
-LIBS += D:\opencv-3.4.5\opencv-3.4.5-build\install\x86\mingw\bin\libopencv_core345.dll \
-    D:\opencv-3.4.5\opencv-3.4.5-build\install\x86\mingw\bin\libopencv_highgui345.dll \
-    D:\opencv-3.4.5\opencv-3.4.5-build\install\x86\mingw\bin\libopencv_imgcodecs345.dll \
-    D:\opencv-3.4.5\opencv-3.4.5-build\install\x86\mingw\bin\libopencv_imgproc345.dll \
-    D:\opencv-3.4.5\opencv-3.4.5-build\install\x86\mingw\bin\libopencv_features2d345.dll \
-    D:\opencv-3.4.5\opencv-3.4.5-build\install\x86\mingw\bin\libopencv_calib3d345.dll \
-    D:\opencv-3.4.5\opencv-3.4.5-build\install\x86\mingw\bin\libopencv_shape345.dll \
-    D:\opencv-3.4.5\opencv-3.4.5-build\install\x86\mingw\bin\libopencv_videoio345.dll \
-    D:\opencv-3.4.5\opencv-3.4.5-build\install\x86\mingw\bin\libopencv_objdetect345.dll
+LIBS += D:\opencv-3.4.5\opencv_contrib-3.4.5-build\install\x86\mingw\bin\libopencv_core345.dll \
+    D:\opencv-3.4.5\opencv_contrib-3.4.5-build\install\x86\mingw\bin\libopencv_highgui345.dll \
+    D:\opencv-3.4.5\opencv_contrib-3.4.5-build\install\x86\mingw\bin\libopencv_imgcodecs345.dll \
+    D:\opencv-3.4.5\opencv_contrib-3.4.5-build\install\x86\mingw\bin\libopencv_imgproc345.dll \
+    D:\opencv-3.4.5\opencv_contrib-3.4.5-build\install\x86\mingw\bin\libopencv_features2d345.dll \
+    D:\opencv-3.4.5\opencv_contrib-3.4.5-build\install\x86\mingw\bin\libopencv_calib3d345.dll \
+    D:\opencv-3.4.5\opencv_contrib-3.4.5-build\install\x86\mingw\bin\libopencv_shape345.dll \
+    D:\opencv-3.4.5\opencv_contrib-3.4.5-build\install\x86\mingw\bin\libopencv_videoio345.dll \
+    D:\opencv-3.4.5\opencv_contrib-3.4.5-build\install\x86\mingw\bin\libopencv_objdetect345.dll \
+    D:\opencv-3.4.5\opencv_contrib-3.4.5-build\install\x86\mingw\bin\libopencv_face345.dll
 
