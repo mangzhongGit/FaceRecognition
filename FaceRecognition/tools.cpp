@@ -91,7 +91,7 @@ vector<Mat> recognize_face(Mat InputMat, int flag)
     std::vector<Rect> faces;  //创建一个容器保存检测出来的脸
     Mat gray;
     cv::cvtColor(InputMat,gray,CV_BGR2GRAY); //转换成灰度图，因为harr特征从灰度图中提取
-    equalizeHist(gray,gray);  //直方图均衡行
+    equalizeHist(gray,gray);  //直方图均衡话
     ccf.detectMultiScale(gray, faces, 1.1, 3, 0); //检测人脸
     vector<Mat> result;
     //画出脸部矩形框
@@ -127,4 +127,13 @@ Mat get_face(vector<Mat> InputMat)
         }
     }
     return face;
+}
+
+void model_detect(Mat InputMat, Ptr<EigenFaceRecognizer> model, int &predictPCA, double &confidence)
+{
+    Mat gray;
+    cv::cvtColor(InputMat,gray,CV_BGR2GRAY);
+    cv::resize(gray, gray, cv::Size(92, 112));
+    model->predict(gray,predictPCA,confidence);
+    cout << "the predict result is " << predictPCA << endl << "confidence is " << confidence << endl;
 }

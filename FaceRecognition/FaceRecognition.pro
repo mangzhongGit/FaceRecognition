@@ -31,18 +31,18 @@ SOURCES += \
     facerec.cpp \
     modeltraining.cpp \
     similaritycompare.cpp \
-    takephotothread.cpp \
     takephoto.cpp \
     light.cpp \
-    tools.cpp
+    tools.cpp \
+    mythread.cpp
 
 HEADERS += \
         mainwindow.h \
     facerec.h \
     tools.h \
     headers.h \
-    takephotothread.h \
-    takephoto.h
+    takephoto.h \
+    mythread.h
 
 FORMS += \
         mainwindow.ui \

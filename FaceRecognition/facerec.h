@@ -2,6 +2,7 @@
 #define FACEREC_H
 #include <headers.h>
 #include <takephoto.h>
+#include <mythread.h>
 #include <tools.h>
 namespace Ui {
 class FaceRec;
@@ -14,6 +15,10 @@ class FaceRec : public QWidget
 public:
     explicit FaceRec(QWidget *parent = nullptr);
     ~FaceRec();
+
+signals:
+    void sendMat(Mat frame);
+    void sendFlag(int flag);
 
 private slots:
     void on_localImgButton_clicked();       //获取本地图像
@@ -28,17 +33,19 @@ private slots:
 
     void reshow();
 
-    void on_fillLightButton_clicked();
+    void receiceSignal();
 
     void on_takeOwnPhotoButton_clicked();
 
-    void on_demoButton_clicked();
+    void on_fillBrightButton_clicked();
 
-    void on_testButton_clicked();
+    void on_nonLineButton_clicked();
 
-    void on_pushButton_clicked();
+    void on_faceEnButton_clicked();
 
-    void on_pushButton_2_clicked();
+    void on_modelTrainButton_clicked();
+
+    void on_loadXMLButton_clicked();
 
 private:
     Ui::FaceRec *ui;
@@ -49,8 +56,12 @@ private:
     QImage *img;
     Mat imgMat;
 
-    Mat demoMat;
-    Mat testMat;
+    int predictPCA;
+    double confidence;
+    int judgeMe;
+    myThread *thread;
+
+    float demoBright;
 
     Ptr<EigenFaceRecognizer> model;
 
@@ -66,12 +77,15 @@ private:
 
     Mat balance_white(Mat InputMat);          // 灰色世界法白平衡
 
-    void model_detect(Mat imgMat);            // 模型检测
-
     void get_chart();
 
     float get_brightness(Mat InputMat);
 
+    Mat gamma_correct(Mat InputMat, float fGamma); //gamma校验
+
+    Mat enhanced_local_texture_feature(Mat  InputMat); //增强的局部纹理特征集，在困难的灯光下进行人脸识别
+
+    QString get_information(Mat InputMat);
 };
 
 #endif // FACEREC_H

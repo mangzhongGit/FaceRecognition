@@ -46,7 +46,6 @@ void takePhoto::get_own_photo()
             // 重新采集头像，就需要重新进行模型训练
             cap.release();
             destroyWindow(winName);
-            model_train();
             break;
         }
         Mat frame;

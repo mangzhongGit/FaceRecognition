@@ -16,6 +16,6 @@ vector<Mat> recognize_face(Mat InputMat, int flag);     //识别人脸
 
 Mat get_face(vector<Mat> InputMat);
 
-void test();
+void model_detect(Mat InputMat,Ptr<EigenFaceRecognizer> model, int &predictPCA, double &confidence);
 
 #endif // TOOLS_H

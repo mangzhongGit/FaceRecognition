@@ -62,7 +62,7 @@ cv::Mat FaceRec::auto_fill_light(Mat InputMat)
             break;
         case -1: //光照不足
             result = fill_light(result);
-            result = auto_fill_light(result);
+            auto_fill_light(result);
             break;
         default:
             break;
@@ -111,8 +111,6 @@ Mat FaceRec::auto_adjust_light(Mat InputMat)
             (*colorit3)[i]= (int)(255 * pow(middle_2, middle));
         }
     }
-
-    imshow("result", result);
     return result;
 }
 
@@ -153,7 +151,7 @@ int FaceRec::judge_light_intensity(Mat InputMat)
     float flag = d/m;
     if(flag >= 1)
     {
-        if(da > 0)  return 1;
+        if(da > demoBright)  return 1;
         else return -1;
     }
     else return 0;
@@ -192,5 +190,83 @@ Mat FaceRec::balance_white(Mat InputMat)
 
     merge(g_vChannels,result);//图像各通道合并
     imshow("result",result);
+    return result;
+}
+
+// gamma 校验
+Mat FaceRec::gamma_correct(Mat InputMat, float fGamma)
+{
+    Mat result;
+    unsigned char lut[256];
+    for(int i=0; i<256; i++)
+    {
+        lut[i] = (uchar)(pow((float)(i/255.0), fGamma) * 255.0f);
+    }
+
+    result = InputMat;
+    const int channels = result.channels();
+    if(channels == 1)
+    {
+        MatIterator_<uchar> it, end;
+        for( it = result.begin<uchar>(), end = result.end<uchar>(); it != end; it++ )
+            //*it = pow((float)(((*it))/255.0), fGamma) * 255.0;
+            *it = lut[(*it)];
+    }
+    if(channels == 3)
+    {
+        MatIterator_<Vec3b> it, end;
+        for( it = result.begin<Vec3b>(), end = result.end<Vec3b>(); it != end; it++ )
+        {
+            //(*it)[0] = pow((float)(((*it)[0])/255.0), fGamma) * 255.0;
+            //(*it)[1] = pow((float)(((*it)[1])/255.0), fGamma) * 255.0;
+            //(*it)[2] = pow((float)(((*it)[2])/255.0), fGamma) * 255.0;
+            (*it)[0] = lut[((*it)[0])];
+            (*it)[1] = lut[((*it)[1])];
+            (*it)[2] = lut[((*it)[2])];
+        }
+    }
+    return result;
+}
+// 增强的局部纹理特征集，在困难的灯光下进行人脸识别
+Mat FaceRec::enhanced_local_texture_feature(Mat  InputMat)
+{
+    Mat result = InputMat, mFace1, mFace2;
+    double sigma1 = 0.5, sigma2 = 2, alpha = 0.1, tau  = 10;
+    float fGamma = 2.0;
+
+    // 直接读取灰度图会得到CV_8UC1类型的mat，是单通道uchar型矩阵，
+    // 因此高斯滤波后相减都是整型非负数据，影响后面进行比较取极值的步骤。
+    // 所以需要将原本的数据类型转化为CV_32FC1即单通道float型数据。再进行后续的操作
+    result.convertTo(result,CV_32FC1, 1.0/255);
+
+    // gamma correction
+    Mat gammaMat = gamma_correct(result, fGamma);
+
+    // DOG filter
+    Mat dst1, dst2;
+    int dia = 9;
+    GaussianBlur(gammaMat, dst1, Size(dia,dia), sigma1, sigma1);
+    GaussianBlur(gammaMat, dst2, Size(dia,dia), sigma2, sigma2);
+    result = dst1 - dst2;
+
+    // Contrast Equalization
+    mFace1 = cv::abs(result);
+    cv::pow(mFace1, alpha, mFace1);
+    result = result / cv::pow(cv::mean(mFace1).val[0], 1/alpha); //mean用于求Mat均值
+
+    mFace1 = cv::abs(result);
+    mFace1 = (cv::min)(tau, mFace1);
+    cv::pow(mFace1, alpha, mFace1);
+    result  = result / cv::pow(cv::mean(mFace1).val[0], 1/alpha) / tau;
+
+    cv::exp(result, mFace1); //exp 求每个矩阵元素 src(I) 的自然数 e 的 src(I) 次幂 dst[I] = esrc(I)
+    cv::exp((0-result), mFace2);
+    result  = mFace1 - mFace2;
+    mFace1 = mFace1 + mFace2;
+    result  = result / mFace1;
+
+    cv::normalize(result, result, 0, 1, CV_MINMAX);                       //归一化
+    cv::convertScaleAbs(result, result, 255);                             //32f->8u
+
     return result;
 }
