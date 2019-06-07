@@ -13,6 +13,16 @@
 #include <QThread>
 #include <QtCharts>
 
+#include <QSqlDatabase>
+#include <QSqlQuery>
+#include <QSqlQueryModel>
+#include <QSqlTableModel>
+#include <QSqlRelationalTableModel>
+#include <QSqlError>
+#include <QTableView>
+#include <QDateTime>
+#include <QTime>
+
 #include <cmath>
 #include <vector>
 #include <fstream>
@@ -26,6 +36,7 @@
 #include <opencv2/face.hpp>
 
 #include <iostream>
+#include <QMetaType>
 
 using namespace cv;
 using namespace cv::face;

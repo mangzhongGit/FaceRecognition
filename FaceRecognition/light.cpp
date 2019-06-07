@@ -1,11 +1,19 @@
 /**
     * 这个文件中存放处理图片光照的函数
 */
-#include <facerec.h>
+#include <tools.h>
 
 // 补光操作
-cv::Mat FaceRec::fill_light(Mat InputMat)
+cv::Mat fill_light(Mat InputMat)
 {
+    // 设置增亮映射表
+    int arrayColor[256];
+    for(int i=0; i<256; i++)
+    {
+        arrayColor[i] = i+1;
+        if(arrayColor[i]>=255) arrayColor[i]=254;
+    }
+
     Mat result = InputMat;
     double blue = 0, green = 0, red = 0;
     int count = InputMat.rows * InputMat.cols;
@@ -51,27 +59,27 @@ cv::Mat FaceRec::fill_light(Mat InputMat)
 }
 
 // 自动补光操作
-cv::Mat FaceRec::auto_fill_light(Mat InputMat)
+cv::Mat auto_fill_light(Mat InputMat)
 {
     Mat result = InputMat;
     int flag = judge_light_intensity(InputMat);
     switch(flag)
     {
-        case 1: //光照过强
-//            result = fill_light(result);
-            break;
-        case -1: //光照不足
-            result = fill_light(result);
-            auto_fill_light(result);
-            break;
-        default:
-            break;
+    case 1: //光照过强
+//      result = fill_light(result);
+        break;
+    case -1: //光照不足
+        result = fill_light(result);
+        auto_fill_light(result);
+        break;
+    default:
+        break;
     }
     return result;
 }
 
 // 自动调整光照 Local Color Correction Using Non-Linear Masking 算法实现
-Mat FaceRec::auto_adjust_light(Mat InputMat)
+Mat auto_adjust_light(Mat InputMat)
 {
     Mat TmpMat, gray, op_gray, BlurMat, sketch, result = InputMat;
     // 将颜色空间转换为RGB
@@ -123,8 +131,17 @@ Mat FaceRec::auto_adjust_light(Mat InputMat)
     * 返回 0  表示亮度正常
     * 返回 1  表示亮度过亮
 */
-int FaceRec::judge_light_intensity(Mat InputMat)
+int judge_light_intensity(Mat InputMat)
 {
+    float demoBright;
+    // 获取demo亮度
+    demoBright = 0;
+    string demoPath = "E:\\Git\\FaceRecognition\\TestCase\\demo.jpg";
+    Mat demo = imread(demoPath);
+    if(!demo.empty())
+    {
+        demoBright = get_brightness(demo);
+    }
     Mat gray;
     // 将RGB图像转化为灰度图像
     cv::cvtColor(InputMat,gray,CV_BGR2GRAY);
@@ -158,7 +175,7 @@ int FaceRec::judge_light_intensity(Mat InputMat)
 }
 
 // 灰度世界法 实现白平衡
-Mat FaceRec::balance_white(Mat InputMat)
+Mat balance_white(Mat InputMat)
 {
     Mat result;
     std::vector<cv::Mat> g_vChannels;
@@ -194,7 +211,7 @@ Mat FaceRec::balance_white(Mat InputMat)
 }
 
 // gamma 校验
-Mat FaceRec::gamma_correct(Mat InputMat, float fGamma)
+Mat gamma_correct(Mat InputMat, float fGamma)
 {
     Mat result;
     unsigned char lut[256];
@@ -228,11 +245,11 @@ Mat FaceRec::gamma_correct(Mat InputMat, float fGamma)
     return result;
 }
 // 增强的局部纹理特征集，在困难的灯光下进行人脸识别
-Mat FaceRec::enhanced_local_texture_feature(Mat  InputMat)
+Mat enhanced_local_texture_feature(Mat  InputMat)
 {
     Mat result = InputMat, mFace1, mFace2;
-    double sigma1 = 0.5, sigma2 = 2, alpha = 0.1, tau  = 10;
-    float fGamma = 2.0;
+    double sigma1 = 1, sigma2 = 2, alpha = 0.1, tau  = 10;
+    float fGamma = 1.8;
 
     // 直接读取灰度图会得到CV_8UC1类型的mat，是单通道uchar型矩阵，
     // 因此高斯滤波后相减都是整型非负数据，影响后面进行比较取极值的步骤。
@@ -269,4 +286,69 @@ Mat FaceRec::enhanced_local_texture_feature(Mat  InputMat)
     cv::convertScaleAbs(result, result, 255);                             //32f->8u
 
     return result;
+}
+
+Mat integated_algorithm(Mat InputMat)
+{
+    Mat mat0 = auto_fill_light(InputMat);
+    Mat mat1 = auto_adjust_light(mat0);
+    Mat result = promote(mat1);
+
+//    Mat result = mat1, mFace1, mFace2;
+//    double sigma1 = 1, sigma2 = 2, alpha = 0.1, tau  = 10;
+
+//    // 直接读取灰度图会得到CV_8UC1类型的mat，是单通道uchar型矩阵，
+//    // 因此高斯滤波后相减都是整型非负数据，影响后面进行比较取极值的步骤。
+//    // 所以需要将原本的数据类型转化为CV_32FC1即单通道float型数据。再进行后续的操作
+//    result.convertTo(result,CV_32FC1, 1.0/255);
+//    float fGamma = 1.8;
+//    result = gamma_correct(result, fGamma);
+
+//    // DOG filter
+//    Mat dst1, dst2;
+//    int dia = 9;
+//    GaussianBlur(result, dst1, Size(dia,dia), sigma1, sigma1);
+//    GaussianBlur(result, dst2, Size(dia,dia), sigma2, sigma2);
+//    result = dst1 - dst2;
+
+//    // Contrast Equalization
+//    mFace1 = cv::abs(result);
+//    cv::pow(mFace1, alpha, mFace1);
+//    result = result / cv::pow(cv::mean(mFace1).val[0], 1/alpha); //mean用于求Mat均值
+
+//    mFace1 = cv::abs(result);
+//    mFace1 = (cv::min)(tau, mFace1);
+//    cv::pow(mFace1, alpha, mFace1);
+//    result  = result / cv::pow(cv::mean(mFace1).val[0], 1/alpha) / tau;
+
+//    cv::exp(result, mFace1); //exp 求每个矩阵元素 src(I) 的自然数 e 的 src(I) 次幂 dst[I] = esrc(I)
+//    cv::exp((0-result), mFace2);
+//    result  = mFace1 - mFace2;
+//    mFace1 = mFace1 + mFace2;
+//    result  = result / mFace1;
+
+//    cv::normalize(result, result, 0, 1, CV_MINMAX);                       //归一化
+//    cv::convertScaleAbs(result, result, 255);                             //32f->8u
+
+    return result;
+}
+
+float get_brightness(Mat InputMat)
+{
+    Mat gray;
+    // 将RGB图像转化为灰度图像
+    cv::cvtColor(InputMat,gray,CV_BGR2GRAY);
+    float a=0;
+    int Hist[256] = {0};
+    for(int i=0; i<gray.rows; i++)
+    {
+        for(int j=0; j<gray.cols; j++)
+        {
+            a += (float)(gray.at<uchar>(i,j) - 128);
+            int x = (int)gray.at<uchar>(i,j);
+            Hist[x]++;
+        }
+    }
+    float brightness = a / (float)(gray.rows * gray.cols);
+    return brightness;
 }

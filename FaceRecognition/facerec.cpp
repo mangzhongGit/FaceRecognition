@@ -1,32 +1,18 @@
 #include "facerec.h"
 #include "ui_facerec.h"
+#include "mythread.h"
 
 FaceRec::FaceRec(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::FaceRec)
 {
     ui->setupUi(this);
+    qRegisterMetaType<Mat>("Mat");
     //初始化
     timer = new QTimer(this);
+    recTimer = new QTimer(this);
     img = new QImage();
     model = EigenFaceRecognizer::create();
-    judgeMe = 0;
-    thread = new myThread();
-
-    // 获取demo亮度
-    demoBright = 0;
-    string demoPath = "E:\\Git\\FaceRecognition\\TestCase\\demo.jpg";
-    Mat demo = imread(demoPath);
-    if(!demo.empty())
-    {
-        demoBright = get_brightness(demo);
-    }
-    // 设置增亮映射表
-    for(int i=0; i<256; i++)
-    {
-        arrayColor[i] = i+1;
-        if(arrayColor[i]>=255) arrayColor[i]=254;
-    }
 
     // 设置tab页名称
     ui->tabWidget->setTabText(0,"算法效果测试");
@@ -41,11 +27,36 @@ FaceRec::FaceRec(QWidget *parent) :
     ui->label_3->setFixedSize(400, 200);
     ui->label_4->setFixedSize(400, 200);
 
+    ui->videoLabel->setFixedSize(550, 550);
+    ui->videoLabel->setText("视频");
+    ui->videoLabel->setAlignment(Qt::AlignCenter);
+
+    ui->faceLabel->setFixedSize(250, 250);
+    ui->faceLabel->setText("face");
+    ui->faceLabel->setAlignment(Qt::AlignCenter);
+
+    ui->label_5->setFixedSize(250, 350);
+    ui->label_5->setText("result");
+
+    // 连接数据库
+    if(!createConnection())
+    {
+        QMessageBox::warning(NULL,tr("waring"),tr("数据库连接失败！"));
+    }
+    else
+    {
+        query = new QSqlQuery();
+    }
+
+
     // 信号和槽
     connect(timer, SIGNAL(timeout()),this,SLOT(read_frame()));
-    connect(this, SIGNAL(sendMat(Mat)), thread, SLOT(receiveMat(Mat)));
+    connect(recTimer, SIGNAL(timeout()),this,SLOT(stopRec()));
+    thread = new myThread();
     connect(this, SIGNAL(sendFlag(int)), thread, SLOT(receiveFlag(int)));
-    connect(thread,SIGNAL(sendsignal()), this, SLOT(receiceSignal()));
+    connect(thread, SIGNAL(sendFlag(int)), this, SLOT(receiveFlag(int)));
+    connect(thread,SIGNAL(sendsignal(int, Mat, double)), this, SLOT(receiceSignal(int, Mat, double)));
+    connect(this, SIGNAL(sendMat(Mat,int)), thread, SLOT(receiveMat(Mat,int)));
 }
 
 FaceRec::~FaceRec()
@@ -84,7 +95,7 @@ void FaceRec::on_localImgButton_clicked()
             height = (*img).height();
         }
         imgMat = cv::imread(filename.toStdString());
-
+        cv::resize(imgMat, imgMat, cv::Size(width, height));
         // 让图片自适应label的大小
         QPixmap *pixmap = new QPixmap(QPixmap::fromImage(*img));
         pixmap->scaled(ui->label->size(), Qt::KeepAspectRatio);
@@ -99,7 +110,7 @@ void FaceRec::on_localImgButton_clicked()
 //打开摄像头
 void FaceRec::on_openCameraButton_clicked()
 {
-    cap = NULL;
+    if(cap.isOpened()) cap.release();
     cap.open(0);
     if(!cap.isOpened())
     {
@@ -107,7 +118,10 @@ void FaceRec::on_openCameraButton_clicked()
                              tr("frame is empty"),
                              tr("frame is empty"));
     }
-    timer->start(40);   //开始计时，不可缺少，控制帧率，在这里为25帧
+    timer->start(50);   //开始计时，不可缺少，控制帧率，在这里为25帧
+    recTimer->start(10000);
+    startTime = QTime::currentTime();
+    judgeMe = 0;
 }
 
 //读取当前帧信息
@@ -121,29 +135,59 @@ void FaceRec::read_frame()
     pixmap->scaled(ui->label->size(), Qt::KeepAspectRatio);
     ui->videoLabel->setScaledContents(true);
     ui->videoLabel->setPixmap(*pixmap);
+    emit sendMat(frame,judgeMe);
     thread->start();
-    emit sendMat(frame);
 }
 
-void FaceRec::receiceSignal()
+void FaceRec::receiceSignal(int predictPCA, Mat face, double confidence)
 {
-    qDebug()<<"识别成功，你是张吉栋";
+    closeCamera();
     thread->stop();
-    on_closeCameraButton_clicked();
-    //destroyWindow("FaceRecgnitizing");
+    recTimer->stop();
+    if(judgeMe == 0)
+    {
+        judgeMe = 1;
+        stopTime = QTime::currentTime();
+        int elapsed = startTime.msecsTo(stopTime); //时间差单位为 毫秒
+        QString result = "识别成功！！！\n\n" ;
+        QString name, gender;
+        int age = 0;
+        query->exec("select * from face");
+        while(query->next())
+        {
+            if(predictPCA == query->value(0).toInt())
+            {
+                name = query->value(1).toString();
+                gender = query->value(2).toString();
+                age = query->value(3).toInt();
+            }
+        }
+        result = result + "姓名："+ name + "\n\n";
+        result = result + "性别：" + gender + "\n\n";
+        result = result + "年龄：" + QString::number(age) +"岁\n\n";
+        result = result + "置信度："+QString::number(confidence,10,4) + "\n\n";
+        result = result + "识别时间:" + QString::number(elapsed) + "毫秒";
+
+        QImage imgMiddle = Mat2QImage(face);
+        QPixmap *pixmap = new QPixmap(QPixmap::fromImage(imgMiddle));
+        pixmap->scaled(ui->faceLabel->size(), Qt::KeepAspectRatio);
+        ui->faceLabel->setScaledContents(true);
+        ui->faceLabel->setPixmap(*pixmap);
+
+        ui->label_5->setText(result);
+    }
 }
 
-//拍照
-void FaceRec::on_takePhotoButton_clicked()
+// 停止识别，已经超时
+void FaceRec::stopRec()
 {
-    get_chart();
-//    cap>>frame;
-//    *img = Mat2QImage(frame);
-//    ui->label_2->setPixmap(QPixmap::fromImage(*img));
+    recTimer->stop();
+    closeCamera();
+    ui->label_5->setText(tr("识别失败！！！\n\n识别超时！！！"));
 }
 
 //关闭摄像头
-void FaceRec::on_closeCameraButton_clicked()
+void FaceRec::closeCamera()
 {
     timer->stop();
     cap.release();
@@ -151,91 +195,25 @@ void FaceRec::on_closeCameraButton_clicked()
 
 void FaceRec::on_takeOwnPhotoButton_clicked()
 {
-    QDir dir;
-    QString path("E:/Git/FaceRecognition/att_faces/s41");
-    if(!dir.exists())
-        qDebug() << "文件目录不存在";
-    else
-    {
-        dir.cd(path);
-        QFileInfoList list = dir.entryInfoList();
-        if(list.count()<=2)//需要采集自己的照片
-        {
-            takePhoto *photo = new takePhoto();
-            connect(photo,SIGNAL(sendsignal()),this,SLOT(reshow())); //用于从子界面返回到主界面
-            QFont font("ZYSong18030",12);//设置字体
-            photo->setFont(font);
-            photo->setWindowTitle(tr("人脸识别系统"));
-            photo->show();
-            this->hide();
-        }
-        else
-        {
-            QMessageBox message(QMessageBox::NoIcon, tr("提示"), tr("您的照片已采集，不需要再次采集照片！如需重新采集，请点击Yes"),
-                                QMessageBox::Yes | QMessageBox::No, NULL);
-            if(message.exec() == QMessageBox::Yes)
-            {
-                for(int i=2; i<list.count(); i++)
-                {
-                    QFileInfo file = list[i];
-                    file.dir().remove(file.fileName());
-                }
-                on_takeOwnPhotoButton_clicked();
-            }
-        }
-    }
+    photo = new takePhoto();
+    connect(photo,SIGNAL(sendsignals()),this,SLOT(reshow())); //用于从子界面返回到主界面
+    QFont font("ZYSong18030",12);//设置字体
+    photo->setFont(font);
+    photo->setWindowTitle(tr("人脸注册模块"));
+    photo->show();
+    this->hide();
 }
 
 void FaceRec::reshow()
 {
+    delete photo;
     this->show();
-}
-
-void FaceRec::get_chart()
-{
-//    QPieSeries *series = new QPieSeries();
-//    series->append("相似度70%", 7);
-//    series->append("30%", 3);
-//    series->setLabelsVisible();
-
-//    QPieSlice *slice_red = series->slices().at(0);
-//    QPieSlice *slice_green = series->slices().at(1);
-
-//    slice_red->setColor(QColor(255,0,0,255));
-//    slice_green->setColor(QColor(0,255,0,255));
-
-//    QChart *chart = new QChart();
-//    chart->addSeries(series);
-//    chart->setTitle("PieChart Example");
-//    chart->legend()->hide();
-//    ui->graphicsView->setChart(chart);
-//    ui->graphicsView->setRenderHint(QPainter::Antialiasing);
-}
-
-float FaceRec::get_brightness(Mat InputMat)
-{
-    Mat gray;
-    // 将RGB图像转化为灰度图像
-    cv::cvtColor(InputMat,gray,CV_BGR2GRAY);
-    float a=0;
-    int Hist[256] = {0};
-    for(int i=0; i<gray.rows; i++)
-    {
-        for(int j=0; j<gray.cols; j++)
-        {
-            a += (float)(gray.at<uchar>(i,j) - 128);
-            int x = (int)gray.at<uchar>(i,j);
-            Hist[x]++;
-        }
-    }
-    float brightness = a / (float)(gray.rows * gray.cols);
-    return brightness;
 }
 
 QString FaceRec::get_information(Mat InputMat)
 {
     Mat middleMat = InputMat.clone();
-    QString s_text = "原图信息显示：";
+    QString s_text = "图像信息显示：";
     QString s_type = "图像类型：";
 
     if(middleMat.channels() == 1)
@@ -248,15 +226,15 @@ QString FaceRec::get_information(Mat InputMat)
     QString s_judge = "图像判定：";
     switch(s_flag)
     {
-        case 1: //光照过强
-            s_judge = s_judge + "光照过强，图像光亮";
-            break;
-        case -1: //光照不足
-            s_judge = s_judge + "光照不足，图像过暗";
-            break;
-        default:
-            s_judge = s_judge + "光照正常";
-            break;
+    case 1: //光照过强
+        s_judge = s_judge + "光照过强，图像光亮";
+        break;
+    case -1: //光照不足
+        s_judge = s_judge + "光照不足，图像过暗";
+        break;
+    default:
+        s_judge = s_judge + "光照正常";
+        break;
     }
     s_text = s_text + "\n" + s_type + "\n" + s_size + "\n" + s_brightness + "\n" + s_judge;
     return s_text;
@@ -304,6 +282,37 @@ void FaceRec::on_faceEnButton_clicked()
     ui->label_4->setText(text);
 }
 
+void FaceRec::on_gammaButton_clicked()
+{
+    QString gammaStr = ui->gammaEdit->text();
+    float gamma = gammaStr.toFloat();
+
+    Mat middle = imgMat.clone();
+    Mat result = gamma_correct(middle, gamma);
+    QImage imgMiddle = Mat2QImage(result);
+    QPixmap *pixmap = new QPixmap(QPixmap::fromImage(imgMiddle));
+    pixmap->scaled(ui->label->size(), Qt::KeepAspectRatio);
+    ui->label_2->setScaledContents(true);
+    ui->label_2->setPixmap(*pixmap);
+
+    QString text = get_information(result);
+    ui->label_4->setText(text);
+}
+
+void FaceRec::on_improveButton_clicked()
+{
+    Mat middle = imgMat.clone();
+    Mat result = integated_algorithm(middle);
+    QImage imgMiddle = Mat2QImage(result);
+    QPixmap *pixmap = new QPixmap(QPixmap::fromImage(imgMiddle));
+    pixmap->scaled(ui->label->size(), Qt::KeepAspectRatio);
+    ui->label_2->setScaledContents(true);
+    ui->label_2->setPixmap(*pixmap);
+
+    QString text = get_information(result);
+    ui->label_4->setText(text);
+}
+
 void FaceRec::on_modelTrainButton_clicked()
 {
     thread->start();
@@ -314,4 +323,29 @@ void FaceRec::on_loadXMLButton_clicked()
 {
     thread->start();
     emit sendFlag(2);
+}
+
+void FaceRec::receiveFlag(int flag)
+{
+    QString text;
+    switch(flag){
+    case 1:
+        text = "分类器训练成功！";
+        break;
+    case 2:
+        text = "分类器器加载成功！";
+        break;
+    default:
+        break;
+    }
+    thread->stop();
+    ui->label_5->setText(text);
+}
+
+void FaceRec::on_pushButton_clicked()
+{
+//    change_image(1);
+//    change_image(3);
+    thread->start();
+    emit sendFlag(4);
 }

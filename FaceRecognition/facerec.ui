@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>719</width>
-    <height>719</height>
+    <width>718</width>
+    <height>678</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,173 +17,188 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_2">
      <item>
-      <widget class="QPushButton" name="takePhotoButton">
-       <property name="text">
-        <string>拍照</string>
+      <widget class="QTabWidget" name="tabWidget">
+       <property name="currentIndex">
+        <number>1</number>
        </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="closeCameraButton">
-       <property name="text">
-        <string>关闭摄像头</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="takeOwnPhotoButton">
-       <property name="text">
-        <string>图像采集</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="fillLightButton">
-       <property name="text">
-        <string>test</string>
-       </property>
+       <widget class="QWidget" name="tab">
+        <attribute name="title">
+         <string>Tab 1</string>
+        </attribute>
+        <layout class="QVBoxLayout" name="verticalLayout_2">
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout">
+           <item>
+            <widget class="QPushButton" name="localImgButton">
+             <property name="text">
+              <string>选择本地图像</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="fillBrightButton">
+             <property name="text">
+              <string>补光</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="nonLineButton">
+             <property name="text">
+              <string>非线性</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="faceEnButton">
+             <property name="text">
+              <string>人脸增强</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="improveButton">
+             <property name="text">
+              <string>改进算法</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="gammaButton">
+             <property name="text">
+              <string>Gamma校正</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="gammaEdit"/>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_3">
+           <item>
+            <widget class="QLabel" name="label">
+             <property name="text">
+              <string>原始图像显示</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="label_2">
+             <property name="text">
+              <string>处理图像显示</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_4">
+           <item>
+            <widget class="QLabel" name="label_3">
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="label_4">
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="tab_2">
+        <attribute name="title">
+         <string>Tab 2</string>
+        </attribute>
+        <layout class="QVBoxLayout" name="verticalLayout_6">
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_6">
+           <item>
+            <widget class="QLabel" name="videoLabel">
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <layout class="QVBoxLayout" name="verticalLayout_5">
+             <item>
+              <widget class="QLabel" name="faceLabel">
+               <property name="text">
+                <string/>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_5">
+               <property name="text">
+                <string/>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_5">
+           <item>
+            <layout class="QVBoxLayout" name="verticalLayout_3">
+             <item>
+              <widget class="QPushButton" name="takeOwnPhotoButton">
+               <property name="text">
+                <string>人脸注册</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="modelTrainButton">
+               <property name="text">
+                <string>分类器训练</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="loadXMLButton">
+               <property name="text">
+                <string>加载分类器</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QVBoxLayout" name="verticalLayout_4">
+             <item>
+              <widget class="QPushButton" name="openCameraButton">
+               <property name="text">
+                <string>人脸识别</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="pushButton">
+               <property name="text">
+                <string>批处理测试</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </widget>
       </widget>
      </item>
     </layout>
-   </item>
-   <item>
-    <widget class="QTabWidget" name="tabWidget">
-     <property name="currentIndex">
-      <number>1</number>
-     </property>
-     <widget class="QWidget" name="tab">
-      <attribute name="title">
-       <string>Tab 1</string>
-      </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_2">
-       <item>
-        <layout class="QHBoxLayout" name="horizontalLayout">
-         <item>
-          <widget class="QPushButton" name="localImgButton">
-           <property name="text">
-            <string>选择本地图像</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="fillBrightButton">
-           <property name="text">
-            <string>补光</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="nonLineButton">
-           <property name="text">
-            <string>非线性</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="faceEnButton">
-           <property name="text">
-            <string>人脸增强</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_3">
-         <item>
-          <widget class="QLabel" name="label">
-           <property name="text">
-            <string>原始图像显示</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLabel" name="label_2">
-           <property name="text">
-            <string>处理图像显示</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_4">
-         <item>
-          <widget class="QLabel" name="label_3">
-           <property name="text">
-            <string/>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLabel" name="label_4">
-           <property name="text">
-            <string/>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-      </layout>
-     </widget>
-     <widget class="QWidget" name="tab_2">
-      <attribute name="title">
-       <string>Tab 2</string>
-      </attribute>
-      <widget class="QLabel" name="videoLabel">
-       <property name="geometry">
-        <rect>
-         <x>0</x>
-         <y>0</y>
-         <width>501</width>
-         <height>471</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="modelTrainButton">
-       <property name="geometry">
-        <rect>
-         <x>30</x>
-         <y>560</y>
-         <width>93</width>
-         <height>28</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>分类器训练</string>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="loadXMLButton">
-       <property name="geometry">
-        <rect>
-         <x>140</x>
-         <y>560</y>
-         <width>93</width>
-         <height>28</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>加载分类器</string>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="openCameraButton">
-       <property name="geometry">
-        <rect>
-         <x>250</x>
-         <y>560</y>
-         <width>91</width>
-         <height>31</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>人脸识别</string>
-       </property>
-      </widget>
-     </widget>
-    </widget>
    </item>
   </layout>
  </widget>

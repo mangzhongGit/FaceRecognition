@@ -2,12 +2,11 @@
 #define FACEREC_H
 #include <headers.h>
 #include <takephoto.h>
-#include <mythread.h>
 #include <tools.h>
 namespace Ui {
 class FaceRec;
 }
-
+class myThread;
 class FaceRec : public QWidget
 {
     Q_OBJECT
@@ -17,7 +16,7 @@ public:
     ~FaceRec();
 
 signals:
-    void sendMat(Mat frame);
+    void sendMat(Mat frame, int judgeMe);
     void sendFlag(int flag);
 
 private slots:
@@ -27,13 +26,11 @@ private slots:
 
     void on_openCameraButton_clicked();     //打开摄像头
 
-    void on_takePhotoButton_clicked();      //拍照
-
-    void on_closeCameraButton_clicked();    //关闭摄像头
-
     void reshow();
 
-    void receiceSignal();
+    void receiceSignal(int predictPCA, Mat face, double confidence);
+
+    void receiveFlag(int flag);
 
     void on_takeOwnPhotoButton_clicked();
 
@@ -47,6 +44,14 @@ private slots:
 
     void on_loadXMLButton_clicked();
 
+    void on_gammaButton_clicked();
+
+    void on_improveButton_clicked();
+
+    void stopRec();
+
+    void on_pushButton_clicked();
+
 private:
     Ui::FaceRec *ui;
     QTimer *timer;
@@ -56,36 +61,18 @@ private:
     QImage *img;
     Mat imgMat;
 
-    int predictPCA;
-    double confidence;
-    int judgeMe;
+    int judgeMe = 0;
     myThread *thread;
-
-    float demoBright;
-
     Ptr<EigenFaceRecognizer> model;
 
-    int arrayColor[256];    // 补光提亮映射表
-
-    Mat fill_light(Mat InputMat);            //补光操作
-
-    Mat auto_fill_light(Mat InputMat);       //自动补光操作
-
-    Mat auto_adjust_light(Mat InputMat);     //自动调整光照
-
-    int judge_light_intensity(Mat InputMat); //判断光照强度
-
-    Mat balance_white(Mat InputMat);          // 灰色世界法白平衡
-
-    void get_chart();
-
-    float get_brightness(Mat InputMat);
-
-    Mat gamma_correct(Mat InputMat, float fGamma); //gamma校验
-
-    Mat enhanced_local_texture_feature(Mat  InputMat); //增强的局部纹理特征集，在困难的灯光下进行人脸识别
-
     QString get_information(Mat InputMat);
+    void closeCamera();    //关闭摄像头
+
+    QSqlQuery *query;
+    QTime startTime, stopTime;
+    QTimer *recTimer;
+
+    takePhoto *photo;
 };
 
 #endif // FACEREC_H

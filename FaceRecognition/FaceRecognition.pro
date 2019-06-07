@@ -6,6 +6,7 @@
 
 QT       += core gui
 QT += charts
+QT += sql
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -34,7 +35,8 @@ SOURCES += \
     takephoto.cpp \
     light.cpp \
     tools.cpp \
-    mythread.cpp
+    mythread.cpp \
+    createconnection.cpp
 
 HEADERS += \
         mainwindow.h \

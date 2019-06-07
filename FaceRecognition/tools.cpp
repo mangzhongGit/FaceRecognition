@@ -135,5 +135,185 @@ void model_detect(Mat InputMat, Ptr<EigenFaceRecognizer> model, int &predictPCA,
     cv::cvtColor(InputMat,gray,CV_BGR2GRAY);
     cv::resize(gray, gray, cv::Size(92, 112));
     model->predict(gray,predictPCA,confidence);
-    cout << "the predict result is " << predictPCA << endl << "confidence is " << confidence << endl;
+    cout <<  predictPCA << " "<<confidence << endl;
+}
+
+// 细节增强
+
+/**
+    使用了三个尺度的高斯模糊，再和原图做减法，
+    获得不同程度的细节信息，然后通过一定的组合方式把这些细节信息融合到原图中，
+    从而得到加强原图信息的能力
+*/
+Mat promote(Mat Src)
+{
+    int Radius = 5;
+    int rows = Src.rows;
+    int cols = Src.cols;
+    int cha = Src.channels();
+    cv::Mat B1, B2, B3;
+    GaussianBlur(Src, B1, Size(Radius, Radius), 1.0, 1.0);//高斯模糊
+    GaussianBlur(Src, B2, Size(Radius*2-1, Radius*2-1), 2.0, 2.0);
+    GaussianBlur(Src, B3, Size(Radius*4-1, Radius*4-1), 4.0, 4.0);
+
+    double w1 = 0.5;
+    double w2 = 0.5;
+    double w3 = 0.25;
+
+    cv::Mat dest = cv::Mat::zeros(Src.size(), Src.type());
+    for (size_t i = 0; i < rows; i++)
+    {
+        uchar* src_ptr = Src.ptr<uchar>(i);
+        uchar* dest_ptr = dest.ptr<uchar>(i);
+        uchar* B1_ptr = B1.ptr<uchar>(i);
+        uchar* B2_ptr = B2.ptr<uchar>(i);
+        uchar* B3_ptr = B3.ptr<uchar>(i);
+        for (size_t j = 0; j < cols; j++)
+        {
+            for (size_t c = 0; c < cha; c++)
+            {
+                int  D1 = src_ptr[3*j+c] - B1_ptr[3 * j + c];
+                int  D2 = B1_ptr[3 * j + c] - B2_ptr[3 * j + c];
+                int  D3 = B2_ptr[3 * j + c] - B3_ptr[3 * j + c];
+                int  sign = (D1 > 0) ? 1 : -1;
+                dest_ptr[3 * j + c] = saturate_cast<uchar>((1 - w1*sign)*D1 - w2*D2 + w3*D3 + src_ptr[3 * j + c]);
+            }
+        }
+    }
+    return dest;
+}
+
+void change_image(int flag)
+{
+    if(flag == 1) // 生成三种不同光照的训练图像
+    {
+        QDir dir;
+        QString path("D:/TEST/s41");
+        if(!dir.exists())
+            qDebug() << "文件目录不存在";
+        else
+        {
+            dir.cd(path);
+            QFileInfoList list = dir.entryInfoList();
+
+            for(int i=2; i<list.count(); i++)
+            {
+                QFileInfo file = list[i];
+
+                Mat img = imread(file.filePath().toStdString());
+                Mat middle,gray;
+                String pgmname;
+                middle = img.clone();
+                middle = auto_fill_light(middle);
+                middle = auto_adjust_light(middle);
+                cv::cvtColor(middle,gray,CV_BGR2GRAY);
+                pgmname = format("D:/TEST/s42/%d.pgm", i-1);
+                imwrite(pgmname, gray);
+
+                middle = img.clone();
+                middle = enhanced_local_texture_feature(middle);
+                cv::cvtColor(middle,gray,CV_BGR2GRAY);
+                pgmname = format("D:\\TEST\\s43\\%d.pgm", i-1);
+                imwrite(pgmname, gray);
+
+                middle = img.clone();
+                middle = integated_algorithm(middle);
+                cv::cvtColor(middle,gray,CV_BGR2GRAY);
+                pgmname = format("D:\\TEST\\s44\\%d.pgm", i-1);
+                imwrite(pgmname, gray);
+            }
+        }
+    }
+
+    if(flag == 2) //将原图像转化为pgm格式
+    {
+        QDir dir;
+        QString path("D:/TEST/t");
+        if(!dir.exists())
+            qDebug() << "文件目录不存在";
+        else
+        {
+            dir.cd(path);
+            QFileInfoList list = dir.entryInfoList();
+
+            for(int i=2; i<list.count(); i++)
+            {
+                QFileInfo file = list[i];
+
+                Mat img = imread(file.filePath().toStdString());
+                Mat middle,gray;
+                String pgmname;
+                middle = img.clone();
+                cv::cvtColor(middle,gray,CV_BGR2GRAY);
+                cv::resize(gray, gray, cv::Size(92, 112));
+                pgmname = format("D:\\TEST\\t1\\%d.pgm", i-1);
+                imwrite(pgmname, gray);
+            }
+        }
+    }
+
+    if(flag == 3) //生成测试图像
+    {
+        QDir dir;
+        QString path("D:/TEST/t1");
+        if(!dir.exists())
+            qDebug() << "文件目录不存在";
+        else
+        {
+            dir.cd(path);
+            QFileInfoList list = dir.entryInfoList();
+
+            for(int i=2; i<list.count(); i++)
+            {
+                QFileInfo file = list[i];
+
+                Mat img = imread(file.filePath().toStdString());
+                Mat middle,gray;
+                String pgmname;
+                middle = img.clone();
+                middle = auto_fill_light(middle);
+                middle = auto_adjust_light(middle);
+                cv::cvtColor(middle,gray,CV_BGR2GRAY);
+                pgmname = format("D:/TEST/t2/%d.pgm", i-1);
+                imwrite(pgmname, gray);
+
+                middle = img.clone();
+                middle = enhanced_local_texture_feature(middle);
+                cv::cvtColor(middle,gray,CV_BGR2GRAY);
+                pgmname = format("D:\\TEST\\t3\\%d.pgm", i-1);
+                imwrite(pgmname, gray);
+
+                middle = img.clone();
+                middle = integated_algorithm(middle);
+                cv::cvtColor(middle,gray,CV_BGR2GRAY);
+                pgmname = format("D:\\TEST\\t4\\%d.pgm", i-1);
+                imwrite(pgmname, gray);
+            }
+        }
+    }
+}
+
+void test(Ptr<EigenFaceRecognizer> model)
+{
+    QDir dir;
+    QString path("D:/TEST/t4");
+    qDebug()<<"*****图像测试*****";
+    if(!dir.exists())
+        qDebug() << "文件目录不存在";
+    else
+    {
+        dir.cd(path);
+        QFileInfoList list = dir.entryInfoList();
+
+        for(int i=2; i<list.count(); i++)
+        {
+            QFileInfo file = list[i];
+            Mat img = imread(file.filePath().toStdString());
+            Mat middle = img.clone();
+            int predictPCA;
+            double confidence;
+            model_detect(middle, model, predictPCA, confidence);
+        }
+    }
+
 }
